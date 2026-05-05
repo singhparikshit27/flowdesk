@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlowDesk — Team Task Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: #252535;
+    --accent: #6c63ff;
+    --accent2: #ff6b6b;
+    --accent3: #43e97b;
+    --text: #e8e8f0;
+    --muted: #6b6b85;
+    --warn: #f7b731;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 15px; }
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ——— AUTH PAGE ——— */
+  #auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: radial-gradient(ellipse at 20% 50%, #1a0f3a 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, #0f2a1a 0%, transparent 50%),
+                var(--bg);
+  }
+  .auth-box {
+    width: 420px;
+    padding: 48px 40px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  .auth-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+  .brand {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 6px;
+  }
+  .brand span { color: var(--accent); }
+  .auth-sub { color: var(--muted); font-size: 0.8rem; margin-bottom: 36px; }
+  .tab-row { display: flex; gap: 0; margin-bottom: 28px; border-bottom: 1px solid var(--border); }
+  .tab-btn {
+    background: none; border: none; color: var(--muted); font-family: 'Syne', sans-serif;
+    font-size: 0.85rem; font-weight: 600; padding: 10px 20px 12px; cursor: pointer;
+    position: relative; transition: color 0.2s;
+  }
+  .tab-btn.active { color: var(--text); }
+  .tab-btn.active::after {
+    content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
+    height: 2px; background: var(--accent);
+  }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 0.72rem; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .field input {
+    width: 100%; padding: 11px 14px; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.88rem;
+    outline: none; transition: border-color 0.2s;
+  }
+  .field input:focus { border-color: var(--accent); }
+  .btn-primary {
+    width: 100%; padding: 13px; background: var(--accent); border: none;
+    color: #fff; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem;
+    cursor: pointer; letter-spacing: 0.05em; transition: opacity 0.2s;
+    margin-top: 8px;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+  .error-msg { color: var(--accent2); font-size: 0.78rem; margin-top: 12px; }
+
+  /* ——— APP LAYOUT ——— */
+  #app { display: none; min-height: 100vh; }
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 220px;
+    background: var(--surface); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 0;
+    z-index: 100;
+  }
+  .sidebar-brand {
+    padding: 22px 20px 18px;
+    font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 800;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-brand span { color: var(--accent); }
+  .sidebar-nav { flex: 1; padding: 16px 0; }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px; padding: 10px 20px;
+    cursor: pointer; color: var(--muted); font-size: 0.82rem;
+    transition: all 0.15s; border-left: 3px solid transparent;
+  }
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+  .nav-item.active { color: var(--text); border-left-color: var(--accent); background: var(--surface2); }
+  .nav-icon { font-size: 1rem; width: 18px; text-align: center; }
+  .sidebar-footer {
+    padding: 16px 20px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .user-info { font-size: 0.75rem; }
+  .user-name { color: var(--text); font-weight: 500; }
+  .user-email { color: var(--muted); font-size: 0.68rem; margin-top: 2px; }
+  .logout-btn {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    font-size: 0.7rem; padding: 5px 10px; cursor: pointer;
+    font-family: 'DM Mono', monospace; transition: all 0.15s;
+  }
+  .logout-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  .main-content { margin-left: 220px; min-height: 100vh; }
+  .page-header {
+    padding: 28px 36px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .page-title { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; }
+  .page-body { padding: 28px 36px; }
+
+  /* ——— DASHBOARD ——— */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 20px; position: relative; overflow: hidden;
+  }
+  .stat-card::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .stat-card.blue::after { background: var(--accent); }
+  .stat-card.green::after { background: var(--accent3); }
+  .stat-card.yellow::after { background: var(--warn); }
+  .stat-card.red::after { background: var(--accent2); }
+  .stat-label { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+  .stat-value { font-family: 'Syne', sans-serif; font-size: 2.2rem; font-weight: 800; margin-top: 6px; }
+
+  /* ——— PROJECTS ——— */
+  .btn-sm {
+    background: var(--accent); border: none; color: #fff;
+    font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.78rem;
+    padding: 8px 16px; cursor: pointer; letter-spacing: 0.04em;
+    transition: opacity 0.2s;
+  }
+  .btn-sm:hover { opacity: 0.85; }
+  .btn-outline {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    font-family: 'DM Mono', monospace; font-size: 0.75rem;
+    padding: 6px 12px; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger {
+    background: none; border: 1px solid var(--accent2); color: var(--accent2);
+    font-size: 0.72rem; padding: 5px 10px; cursor: pointer; font-family: 'DM Mono';
+    transition: all 0.15s;
+  }
+  .btn-danger:hover { background: var(--accent2); color: #fff; }
+
+  .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .project-card {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 22px; cursor: pointer; transition: all 0.2s; position: relative;
+  }
+  .project-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .project-card-name { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+  .project-card-desc { color: var(--muted); font-size: 0.75rem; margin-bottom: 16px; line-height: 1.5; }
+  .project-meta { display: flex; gap: 16px; }
+  .meta-chip {
+    font-size: 0.68rem; color: var(--muted); display: flex; align-items: center; gap: 4px;
+  }
+  .role-badge {
+    position: absolute; top: 14px; right: 14px;
+    font-size: 0.62rem; padding: 3px 8px; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .role-badge.admin { background: rgba(108,99,255,0.15); color: var(--accent); border: 1px solid rgba(108,99,255,0.3); }
+  .role-badge.member { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+  /* ——— MODAL ——— */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10,10,15,0.85); z-index: 500;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    width: 480px; max-width: 95vw; max-height: 85vh; overflow-y: auto;
+    position: relative;
+  }
+  .modal::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent3));
+  }
+  .modal-header {
+    padding: 24px 28px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; }
+  .modal-close {
+    background: none; border: none; color: var(--muted);
+    font-size: 1.2rem; cursor: pointer; padding: 4px;
+  }
+  .modal-body { padding: 24px 28px; }
+  .modal-footer { padding: 0 28px 24px; display: flex; justify-content: flex-end; gap: 10px; }
+
+  .form-field { margin-bottom: 16px; }
+  .form-field label { display: block; font-size: 0.7rem; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .form-field input, .form-field textarea, .form-field select {
+    width: 100%; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.85rem;
+    outline: none; transition: border-color 0.2s; resize: vertical;
+  }
+  .form-field input:focus, .form-field textarea:focus, .form-field select:focus { border-color: var(--accent); }
+  .form-field select option { background: var(--surface); }
+
+  /* ——— TASKS TABLE ——— */
+  .tasks-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px; gap: 12px;
+  }
+  .tasks-table { width: 100%; border-collapse: collapse; }
+  .tasks-table th {
+    text-align: left; font-size: 0.65rem; color: var(--muted);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+  }
+  .tasks-table td {
+    padding: 13px 14px; border-bottom: 1px solid rgba(37,37,53,0.6);
+    font-size: 0.82rem; vertical-align: middle;
+  }
+  .tasks-table tr:hover td { background: var(--surface2); }
+  .status-badge {
+    font-size: 0.65rem; padding: 3px 9px; border-radius: 0;
+    text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;
+    white-space: nowrap;
+  }
+  .status-todo { background: rgba(107,107,133,0.2); color: var(--muted); border: 1px solid var(--border); }
+  .status-in_progress { background: rgba(108,99,255,0.15); color: var(--accent); border: 1px solid rgba(108,99,255,0.3); }
+  .status-done { background: rgba(67,233,123,0.12); color: var(--accent3); border: 1px solid rgba(67,233,123,0.3); }
+  .priority-high { color: var(--accent2); }
+  .priority-medium { color: var(--warn); }
+  .priority-low { color: var(--muted); }
+  .overdue-tag { color: var(--accent2); font-size: 0.65rem; margin-left: 6px; }
+
+  /* ——— PROJECT DETAIL ——— */
+  .detail-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; }
+  .detail-nav { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+  .detail-tab {
+    background: none; border: none; color: var(--muted);
+    font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.82rem;
+    padding: 10px 20px 12px; cursor: pointer; position: relative;
+    transition: color 0.2s;
+  }
+  .detail-tab.active { color: var(--text); }
+  .detail-tab.active::after {
+    content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
+    height: 2px; background: var(--accent);
+  }
+  .members-list { display: flex; flex-direction: column; gap: 10px; }
+  .member-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; background: var(--surface2); border: 1px solid var(--border);
+  }
+  .member-name { font-size: 0.88rem; }
+  .member-email { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+  /* ——— AI ASSISTANT ——— */
+  .ai-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    position: relative; overflow: hidden;
+  }
+  .ai-panel::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), #ff6b6b, var(--accent3));
+  }
+  .ai-header {
+    padding: 18px 22px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .ai-dot {
+    width: 8px; height: 8px; background: var(--accent3);
+    border-radius: 50%; animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .ai-label { font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 700; color: var(--accent3); }
+  .ai-sub { font-size: 0.68rem; color: var(--muted); }
+  .ai-prompts { padding: 16px 22px; display: flex; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid var(--border); }
+  .prompt-chip {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
+    font-family: 'DM Mono', monospace; font-size: 0.7rem; padding: 5px 12px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .prompt-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .ai-response { padding: 18px 22px; min-height: 80px; font-size: 0.82rem; line-height: 1.7; color: var(--text); }
+  .ai-response.loading { color: var(--muted); font-style: italic; }
+  .ai-input-row { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+  .ai-input {
+    flex: 1; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.82rem;
+    padding: 9px 12px; outline: none;
+  }
+  .ai-input:focus { border-color: var(--accent); }
+  .ai-send {
+    background: var(--accent); border: none; color: #fff;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.78rem;
+    padding: 9px 18px; cursor: pointer; transition: opacity 0.2s;
+  }
+  .ai-send:hover { opacity: 0.85; }
+
+  /* ——— TOASTS ——— */
+  .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent); padding: 12px 18px;
+    font-size: 0.8rem; animation: slideIn 0.2s ease;
+    min-width: 220px;
+  }
+  .toast.error { border-left-color: var(--accent2); }
+  .toast.success { border-left-color: var(--accent3); }
+  @keyframes slideIn { from{transform:translateX(20px);opacity:0} to{transform:none;opacity:1} }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .empty-text { font-size: 0.85rem; }
+
+  select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b6b85' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px !important; }
+
+  .back-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-family: 'DM Mono'; font-size: 0.78rem; display: flex; align-items: center; gap: 6px; margin-bottom: 20px; transition: color 0.15s; }
+  .back-btn:hover { color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- AUTH PAGE -->
+<div id="auth-page">
+  <div class="auth-box">
+    <div class="brand">Flow<span>Desk</span></div>
+    <div class="auth-sub">Team Task Intelligence Platform</div>
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+      <button class="tab-btn" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+    <div id="login-form">
+      <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••"></div>
+      <button class="btn-primary" onclick="doLogin()">Sign In</button>
+      <div class="error-msg" id="auth-error"></div>
+    </div>
+    <div id="signup-form" style="display:none">
+      <div class="field"><label>Full Name</label><input type="text" id="signup-name" placeholder="Your name"></div>
+      <div class="field"><label>Email</label><input type="email" id="signup-email" placeholder="you@example.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="signup-pass" placeholder="Min 6 characters"></div>
+      <button class="btn-primary" onclick="doSignup()">Create Account</button>
+      <div class="error-msg" id="signup-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="sidebar">
+    <div class="sidebar-brand">Flow<span>Desk</span></div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">
+        <span class="nav-icon">⬡</span> Dashboard
+      </div>
+      <div class="nav-item" data-page="projects" onclick="navigate('projects')">
+        <span class="nav-icon">◈</span> Projects
+      </div>
+      <div class="nav-item" data-page="my-tasks" onclick="navigate('my-tasks')">
+        <span class="nav-icon">◻</span> My Tasks
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-name" id="sidebar-username">—</div>
+        <div class="user-email" id="sidebar-email">—</div>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">Exit</button>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <!-- DASHBOARD -->
+    <div id="page-dashboard">
+      <div class="page-header"><div class="page-title">Dashboard</div></div>
+      <div class="page-body">
+        <div class="stats-grid">
+          <div class="stat-card blue">
+            <div class="stat-label">Total Tasks</div>
+            <div class="stat-value" id="stat-total">—</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">Completed</div>
+            <div class="stat-value" id="stat-done">—</div>
+          </div>
+          <div class="stat-card yellow">
+            <div class="stat-label">In Progress</div>
+            <div class="stat-value" id="stat-inprog">—</div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-label">Overdue</div>
+            <div class="stat-value" id="stat-overdue">—</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+          <div class="stat-card blue" style="padding:16px">
+            <div class="stat-label">Assigned to Me</div>
+            <div class="stat-value" id="stat-mine" style="font-size:1.6rem">—</div>
+          </div>
+          <div class="stat-card green" style="padding:16px">
+            <div class="stat-label">Projects</div>
+            <div class="stat-value" id="stat-projects" style="font-size:1.6rem">—</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;color:var(--muted);font-size:0.78rem" id="dash-hint">
+          → Click "Projects" in the sidebar to open or create a project.
+        </div>
+      </div>
+    </div>
+
+    <!-- PROJECTS LIST -->
+    <div id="page-projects" style="display:none">
+      <div class="page-header">
+        <div class="page-title">Projects</div>
+        <button class="btn-sm" onclick="openModal('modal-new-project')">+ New Project</button>
+      </div>
+      <div class="page-body">
+        <div class="projects-grid" id="projects-grid">
+          <div class="empty-state"><div class="empty-icon">◈</div><div class="empty-text">No projects yet.<br>Create one to get started.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MY TASKS -->
+    <div id="page-my-tasks" style="display:none">
+      <div class="page-header"><div class="page-title">My Tasks</div></div>
+      <div class="page-body">
+        <table class="tasks-table" id="my-tasks-table">
+          <thead><tr><th>Task</th><th>Project</th><th>Status</th><th>Priority</th><th>Due</th></tr></thead>
+          <tbody id="my-tasks-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PROJECT DETAIL -->
+    <div id="page-project-detail" style="display:none">
+      <div class="page-header">
+        <div>
+          <button class="back-btn" onclick="navigate('projects')">← Back to Projects</button>
+          <div class="page-title" id="detail-project-name">Project</div>
+          <div style="color:var(--muted);font-size:0.78rem;margin-top:4px" id="detail-project-desc"></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <span id="detail-my-role" class="role-badge"></span>
+          <button class="btn-sm" id="btn-add-task" onclick="openModal('modal-new-task')">+ Task</button>
+        </div>
+      </div>
+      <div class="page-body">
+        <div class="detail-nav">
+          <button class="detail-tab active" onclick="switchDetailTab('tasks')">Tasks</button>
+          <button class="detail-tab" onclick="switchDetailTab('members')">Members</button>
+          <button class="detail-tab" onclick="switchDetailTab('ai')">⚡ AI Insights</button>
+        </div>
+
+        <!-- Tasks tab -->
+        <div id="detail-tasks-tab">
+          <div class="tasks-toolbar">
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="filter-status" onchange="renderProjectTasks()" style="background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:'DM Mono';font-size:0.78rem;padding:6px 28px 6px 10px;outline:none">
+                <option value="">All Status</option>
+                <option value="todo">Todo</option>
+                <option value="in_progress">In Progress</option>
+                <option value="done">Done</option>
+              </select>
+            </div>
+          </div>
+          <table class="tasks-table">
+            <thead><tr><th>Title</th><th>Assignee</th><th>Status</th><th>Priority</th><th>Due</th><th>Actions</th></tr></thead>
+            <tbody id="project-tasks-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Members tab -->
+        <div id="detail-members-tab" style="display:none">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+            <button class="btn-sm" id="btn-add-member" onclick="openModal('modal-add-member')">+ Add Member</button>
+          </div>
+          <div class="members-list" id="members-list"></div>
+        </div>
+
+        <!-- AI tab -->
+        <div id="detail-ai-tab" style="display:none">
+          <div class="ai-panel">
+            <div class="ai-header">
+              <div class="ai-dot"></div>
+              <div>
+                <div class="ai-label">FlowDesk AI</div>
+                <div class="ai-sub">Powered by Claude · Analyzes your project health in real-time</div>
+              </div>
+            </div>
+            <div class="ai-prompts">
+              <div class="prompt-chip" onclick="askAI(this.textContent)">What's blocking progress?</div>
+              <div class="prompt-chip" onclick="askAI(this.textContent)">Who has the most work?</div>
+              <div class="prompt-chip" onclick="askAI(this.textContent)">Summarize project status</div>
+              <div class="prompt-chip" onclick="askAI(this.textContent)">What tasks are overdue?</div>
+              <div class="prompt-chip" onclick="askAI(this.textContent)">Give me a risk assessment</div>
+            </div>
+            <div class="ai-response" id="ai-response">
+              Ask me anything about this project — I have full context on tasks, members, priorities and deadlines.
+            </div>
+            <div class="ai-input-row">
+              <input class="ai-input" id="ai-input" placeholder="Ask about task distribution, blockers, deadlines..." onkeydown="if(event.key==='Enter')askAI()">
+              <button class="ai-send" onclick="askAI()">Ask →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-new-project">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">New Project</div>
+      <button class="modal-close" onclick="closeModal('modal-new-project')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field"><label>Project Name</label><input type="text" id="np-name" placeholder="e.g. Website Redesign"></div>
+      <div class="form-field"><label>Description (optional)</label><textarea id="np-desc" rows="3" placeholder="What's this project about?"></textarea></div>
+      <div class="error-msg" id="np-error"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-new-project')">Cancel</button>
+      <button class="btn-sm" onclick="createProject()">Create Project</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-new-task">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">New Task</div>
+      <button class="modal-close" onclick="closeModal('modal-new-task')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field"><label>Task Title</label><input type="text" id="nt-title" placeholder="Describe the task"></div>
+      <div class="form-field"><label>Description</label><textarea id="nt-desc" rows="2"></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-field"><label>Priority</label>
+          <select id="nt-priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select>
+        </div>
+        <div class="form-field"><label>Assign To</label>
+          <select id="nt-assignee"><option value="">Unassigned</option></select>
+        </div>
+      </div>
+      <div class="form-field"><label>Due Date</label><input type="datetime-local" id="nt-due"></div>
+      <div class="error-msg" id="nt-error"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-new-task')">Cancel</button>
+      <button class="btn-sm" onclick="createTask()">Create Task</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-member">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Team Member</div>
+      <button class="modal-close" onclick="closeModal('modal-add-member')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field"><label>Member Email</label><input type="email" id="am-email" placeholder="their@email.com"></div>
+      <div class="form-field"><label>Role</label>
+        <select id="am-role"><option value="member">Member</option><option value="admin">Admin</option></select>
+      </div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-top:4px">The user must already have a FlowDesk account.</div>
+      <div class="error-msg" id="am-error"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-add-member')">Cancel</button>
+      <button class="btn-sm" onclick="addMember()">Add Member</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-edit-task">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Update Task</div>
+      <button class="modal-close" onclick="closeModal('modal-edit-task')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="et-id">
+      <div class="form-field"><label>Status</label>
+        <select id="et-status">
+          <option value="todo">Todo</option>
+          <option value="in_progress">In Progress</option>
+          <option value="done">Done</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Priority</label>
+        <select id="et-priority">
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Assign To</label>
+        <select id="et-assignee"><option value="">Unassigned</option></select>
+      </div>
+      <div class="form-field"><label>Due Date</label><input type="datetime-local" id="et-due"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-edit-task')">Cancel</button>
+      <button class="btn-sm" onclick="updateTask()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toasts"></div>
+
+<script>
+const API = window.location.origin + '/api';
+let token = localStorage.getItem('fd_token');
+let currentUser = null;
+let currentProject = null;
+let projectTasks = [];
+let projectMembers = [];
+
+// ——— UTILS ———
+const $ = id => document.getElementById(id);
+const api = async (method, path, body) => {
+  const headers = {'Content-Type': 'application/json'};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const r = await fetch(API + path, {method, headers, body: body ? JSON.stringify(body) : undefined});
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.detail || 'Request failed');
+  return data;
+};
+
+const toast = (msg, type='') => {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  $('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+};
+
+const openModal = id => { $(id).classList.add('open'); };
+const closeModal = id => { $(id).classList.remove('open'); };
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); });
+});
+
+// ——— AUTH ———
+const switchTab = tab => {
+  $('login-form').style.display = tab==='login' ? '' : 'none';
+  $('signup-form').style.display = tab==='signup' ? '' : 'none';
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='signup')));
+};
+
+const doLogin = async () => {
+  $('auth-error').textContent = '';
+  try {
+    const r = await api('POST', '/auth/login', {email: $('login-email').value, password: $('login-pass').value});
+    token = r.token; currentUser = r.user;
+    localStorage.setItem('fd_token', token);
+    enterApp();
+  } catch(e) { $('auth-error').textContent = e.message; }
+};
+
+const doSignup = async () => {
+  $('signup-error').textContent = '';
+  try {
+    const r = await api('POST', '/auth/signup', {name: $('signup-name').value, email: $('signup-email').value, password: $('signup-pass').value});
+    token = r.token; currentUser = r.user;
+    localStorage.setItem('fd_token', token);
+    enterApp();
+  } catch(e) { $('signup-error').textContent = e.message; }
+};
+
+const doLogout = () => {
+  localStorage.removeItem('fd_token');
+  token = null; currentUser = null;
+  $('auth-page').style.display = 'flex';
+  $('app').style.display = 'none';
+};
+
+document.addEventListener('keydown', e => {
+  if(e.key==='Enter' && $('auth-page').style.display!=='none') {
+    if($('login-form').style.display!=='none') doLogin();
+    else doSignup();
+  }
+});
+
+// ——— APP INIT ———
+const enterApp = () => {
+  $('auth-page').style.display = 'none';
+  $('app').style.display = 'block';
+  $('sidebar-username').textContent = currentUser.name;
+  $('sidebar-email').textContent = currentUser.email;
+  navigate('dashboard');
+};
+
+const navigate = page => {
+  ['dashboard','projects','my-tasks','project-detail'].forEach(p => {
+    $('page-'+p).style.display = p===page ? 'block' : 'none';
+  });
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page===page));
+  if(page==='dashboard') loadDashboard();
+  if(page==='projects') loadProjects();
+  if(page==='my-tasks') loadMyTasks();
+};
+
+// ——— DASHBOARD ———
+const loadDashboard = async () => {
+  try {
+    const s = await api('GET', '/tasks/dashboard/summary');
+    $('stat-total').textContent = s.total;
+    $('stat-done').textContent = s.done;
+    $('stat-inprog').textContent = s.in_progress;
+    $('stat-overdue').textContent = s.overdue;
+    $('stat-mine').textContent = s.assigned_to_me;
+    $('stat-projects').textContent = s.projects_count;
+  } catch(e) {}
+};
+
+// ——— PROJECTS ———
+const loadProjects = async () => {
+  try {
+    const projects = await api('GET', '/projects/');
+    const grid = $('projects-grid');
+    if(!projects.length) {
+      grid.innerHTML = '<div class="empty-state"><div class="empty-icon">◈</div><div class="empty-text">No projects yet.<br>Create one to get started.</div></div>';
+      return;
+    }
+    grid.innerHTML = projects.map(p => `
+      <div class="project-card" onclick="openProject(${p.id})">
+        <span class="role-badge ${p.my_role}">${p.my_role}</span>
+        <div class="project-card-name">${esc(p.name)}</div>
+        <div class="project-card-desc">${esc(p.description||'No description')}</div>
+        <div class="project-meta">
+          <div class="meta-chip">◻ ${p.task_count} tasks</div>
+          <div class="meta-chip">✓ ${p.done_count} done</div>
+          <div class="meta-chip">◈ ${p.member_count} members</div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) { toast('Failed to load projects','error'); }
+};
+
+const createProject = async () => {
+  $('np-error').textContent = '';
+  try {
+    await api('POST', '/projects/', {name: $('np-name').value, description: $('np-desc').value});
+    closeModal('modal-new-project');
+    $('np-name').value = ''; $('np-desc').value = '';
+    toast('Project created!','success');
+    loadProjects();
+  } catch(e) { $('np-error').textContent = e.message; }
+};
+
+// ——— PROJECT DETAIL ———
+const openProject = async id => {
+  try {
+    const [proj, tasks] = await Promise.all([
+      api('GET', `/projects/${id}`),
+      api('GET', `/tasks/project/${id}`)
+    ]);
+    currentProject = proj;
+    projectTasks = tasks;
+    projectMembers = proj.members;
+
+    $('detail-project-name').textContent = proj.name;
+    $('detail-project-desc').textContent = proj.description || '';
+
+    const myMembership = proj.members.find(m => m.id === currentUser.id);
+    const myRole = myMembership?.role || 'member';
+    $('detail-my-role').textContent = myRole;
+    $('detail-my-role').className = 'role-badge ' + myRole;
+
+    const isAdmin = myRole === 'admin';
+    $('btn-add-task').style.display = '';
+    $('btn-add-member') && ($('btn-add-member').style.display = isAdmin ? '' : 'none');
+
+    // Populate assignee dropdown
+    const assigneeOpts = '<option value="">Unassigned</option>' + projectMembers.map(m => `<option value="${m.id}">${esc(m.name)}</option>`).join('');
+    $('nt-assignee').innerHTML = assigneeOpts;
+    $('et-assignee').innerHTML = assigneeOpts;
+
+    switchDetailTab('tasks');
+    navigate('project-detail');
+    renderProjectTasks();
+    renderMembers(isAdmin);
+  } catch(e) { toast('Failed to load project','error'); }
+};
+
+const renderProjectTasks = () => {
+  const filter = $('filter-status').value;
+  const tasks = filter ? projectTasks.filter(t => t.status === filter) : projectTasks;
+  const tbody = $('project-tasks-body');
+  if(!tasks.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px">No tasks found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = tasks.map(t => `
+    <tr>
+      <td>${esc(t.title)}${t.is_overdue ? '<span class="overdue-tag">⚠ overdue</span>' : ''}</td>
+      <td>${t.assignee ? esc(t.assignee.name) : '<span style="color:var(--muted)">—</span>'}</td>
+      <td><span class="status-badge status-${t.status}">${t.status.replace('_',' ')}</span></td>
+      <td><span class="priority-${t.priority}">${t.priority}</span></td>
+      <td style="color:var(--muted);font-size:0.75rem">${t.due_date ? new Date(t.due_date).toLocaleDateString() : '—'}</td>
+      <td style="display:flex;gap:6px">
+        <button class="btn-outline" onclick="editTask(${t.id})">Edit</button>
+        <button class="btn-danger" onclick="deleteTask(${t.id})">Del</button>
+      </td>
+    </tr>
+  `).join('');
+};
+
+const renderMembers = (isAdmin) => {
+  $('members-list').innerHTML = projectMembers.map(m => `
+    <div class="member-row">
+      <div>
+        <div class="member-name">${esc(m.name)}</div>
+        <div class="member-email">${esc(m.email)}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="role-badge ${m.role}">${m.role}</span>
+        ${isAdmin && m.id !== currentUser.id ? `<button class="btn-danger" onclick="removeMember(${m.id})">Remove</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+};
+
+const switchDetailTab = tab => {
+  $('detail-tasks-tab').style.display = tab==='tasks' ? '' : 'none';
+  $('detail-members-tab').style.display = tab==='members' ? '' : 'none';
+  $('detail-ai-tab').style.display = tab==='ai' ? '' : 'none';
+  document.querySelectorAll('.detail-tab').forEach((b,i) => {
+    b.classList.toggle('active', ['tasks','members','ai'][i]===tab);
+  });
+};
+
+// ——— TASKS ———
+const createTask = async () => {
+  $('nt-error').textContent = '';
+  try {
+    const due = $('nt-due').value;
+    const task = await api('POST', '/tasks/', {
+      title: $('nt-title').value,
+      description: $('nt-desc').value,
+      priority: $('nt-priority').value,
+      assignee_id: $('nt-assignee').value ? parseInt($('nt-assignee').value) : null,
+      due_date: due ? new Date(due).toISOString() : null,
+      project_id: currentProject.id
+    });
+    projectTasks.push(task);
+    closeModal('modal-new-task');
+    $('nt-title').value = ''; $('nt-desc').value = '';
+    toast('Task created!','success');
+    renderProjectTasks();
+  } catch(e) { $('nt-error').textContent = e.message; }
+};
+
+const editTask = id => {
+  const t = projectTasks.find(x=>x.id===id);
+  if(!t) return;
+  $('et-id').value = id;
+  $('et-status').value = t.status;
+  $('et-priority').value = t.priority;
+  $('et-assignee').value = t.assignee?.id || '';
+  $('et-due').value = t.due_date ? new Date(t.due_date).toISOString().slice(0,16) : '';
+  openModal('modal-edit-task');
+};
+
+const updateTask = async () => {
+  const id = parseInt($('et-id').value);
+  const due = $('et-due').value;
+  try {
+    const updated = await api('PATCH', `/tasks/${id}`, {
+      status: $('et-status').value,
+      priority: $('et-priority').value,
+      assignee_id: $('et-assignee').value ? parseInt($('et-assignee').value) : null,
+      due_date: due ? new Date(due).toISOString() : null
+    });
+    const idx = projectTasks.findIndex(t=>t.id===id);
+    if(idx>=0) projectTasks[idx] = updated;
+    closeModal('modal-edit-task');
+    toast('Task updated','success');
+    renderProjectTasks();
+  } catch(e) { toast(e.message,'error'); }
+};
+
+const deleteTask = async id => {
+  if(!confirm('Delete this task?')) return;
+  try {
+    await api('DELETE', `/tasks/${id}`);
+    projectTasks = projectTasks.filter(t=>t.id!==id);
+    toast('Task deleted','success');
+    renderProjectTasks();
+  } catch(e) { toast(e.message,'error'); }
+};
+
+// ——— MY TASKS ———
+const loadMyTasks = async () => {
+  try {
+    const tasks = await api('GET', '/tasks/my');
+    const tbody = $('my-tasks-body');
+    if(!tasks.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">No tasks assigned to you.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = tasks.map(t => `
+      <tr>
+        <td>${esc(t.title)}${t.is_overdue ? '<span class="overdue-tag">⚠ overdue</span>' : ''}</td>
+        <td style="color:var(--muted)">Project #${t.project_id}</td>
+        <td><span class="status-badge status-${t.status}">${t.status.replace('_',' ')}</span></td>
+        <td><span class="priority-${t.priority}">${t.priority}</span></td>
+        <td style="color:var(--muted);font-size:0.75rem">${t.due_date ? new Date(t.due_date).toLocaleDateString() : '—'}</td>
+      </tr>
+    `).join('');
+  } catch(e) { toast('Failed to load tasks','error'); }
+};
+
+// ——— MEMBERS ———
+const addMember = async () => {
+  $('am-error').textContent = '';
+  try {
+    const r = await api('POST', `/projects/${currentProject.id}/members`, {email: $('am-email').value, role: $('am-role').value});
+    toast(r.message,'success');
+    closeModal('modal-add-member');
+    $('am-email').value = '';
+    // Refresh
+    const proj = await api('GET', `/projects/${currentProject.id}`);
+    projectMembers = proj.members;
+    const isAdmin = projectMembers.find(m=>m.id===currentUser.id)?.role==='admin';
+    renderMembers(isAdmin);
+    // Update assignee dropdowns
+    const opts = '<option value="">Unassigned</option>' + projectMembers.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('');
+    $('nt-assignee').innerHTML = opts;
+    $('et-assignee').innerHTML = opts;
+  } catch(e) { $('am-error').textContent = e.message; }
+};
+
+const removeMember = async userId => {
+  if(!confirm('Remove this member?')) return;
+  try {
+    await api('DELETE', `/projects/${currentProject.id}/members/${userId}`);
+    projectMembers = projectMembers.filter(m=>m.id!==userId);
+    const isAdmin = projectMembers.find(m=>m.id===currentUser.id)?.role==='admin';
+    renderMembers(isAdmin);
+    toast('Member removed','success');
+  } catch(e) { toast(e.message,'error'); }
+};
+
+// ——— AI ———
+const askAI = async (question) => {
+  const q = question || $('ai-input').value.trim();
+  if(!q || !currentProject) return;
+  const resp = $('ai-response');
+  resp.className = 'ai-response loading';
+  resp.textContent = 'Analyzing your project data...';
+  try {
+    const r = await api('POST', '/ai/ask', {project_id: currentProject.id, question: q});
+    resp.className = 'ai-response';
+    resp.textContent = r.answer;
+    $('ai-input').value = '';
+  } catch(e) {
+    resp.className = 'ai-response';
+    resp.textContent = e.message.includes('not configured') 
+      ? 'AI assistant requires ANTHROPIC_API_KEY to be set on the server.'
+      : 'AI request failed. ' + e.message;
+  }
+};
+
+const esc = str => String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+// ——— BOOT ———
+window.onload = async () => {
+  if(token) {
+    try {
+      currentUser = await api('GET', '/auth/me');
+      enterApp();
+    } catch { localStorage.removeItem('fd_token'); token = null; }
+  }
+};
+</script>
+</body>
+</html>
