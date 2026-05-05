@@ -1,8 +1,0 @@
-[phases.setup]
-nixPkgs = ["python311Full", "pip"]
-
-[phases.install]
-cmds = ["pip install -r backend/requirements.txt"]
-
-[start]
-cmd = "cd backend && python3 run.py"
