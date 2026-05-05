@@ -1,9 +1,8 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "pip install -r backend/requirements.txt"
 
 [deploy]
-startCommand = "cd backend && python run.py"
+startCommand = "cd backend && python3 run.py"
 healthcheckPath = "/health"
 healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"
